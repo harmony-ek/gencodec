@@ -11,6 +11,7 @@ import (
 	"io"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // walkNamedTypes runs the callback for all named types contained in the given type.
@@ -168,10 +169,14 @@ func newFileScope(imp types.Importer, pkg *types.Package) *fileScope {
 func (s *fileScope) writeImportDecl(w io.Writer) {
 	fmt.Fprintln(w, "import (")
 	for _, pkg := range s.imports {
+		path := pkg.Path()
+		if idx := strings.LastIndex(path, "/vendor/"); idx >= 0 {
+			path = path[idx+8:]
+		}
 		if s.importNames[pkg.Path()] != pkg.Name() {
-			fmt.Fprintf(w, "\t%s %q\n", s.importNames[pkg.Path()], pkg.Path())
+			fmt.Fprintf(w, "\t%s %q\n", s.importNames[pkg.Path()], path)
 		} else {
-			fmt.Fprintf(w, "\t%q\n", pkg.Path())
+			fmt.Fprintf(w, "\t%q\n", path)
 		}
 	}
 	fmt.Fprintln(w, ")")
